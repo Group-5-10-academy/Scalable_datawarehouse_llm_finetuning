@@ -1,4 +1,4 @@
-const basePath = "localhost";
+const basePath = "localhos";
 
 export const searchSymbols = async (query) => {
   const url = `${basePath}/search?q=${query}&token=cn0eul9r01quegsjnthgcn0eul9r01quegsjnti0`;
