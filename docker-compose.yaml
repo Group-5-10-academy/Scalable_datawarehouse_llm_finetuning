@@ -1,0 +1,48 @@
+version: '3.3'
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - shared-volume:/data/postgres
+  airflow-webserver:
+    image: apache/airflow:2.1.2
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - shared-volume:/data/airflow
+    command: webserver
+  airflow-scheduler:
+    image: apache/airflow:2.1.2
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - shared-volume:/data/airflow
+    command: scheduler
+  react-app:
+    build:
+      context: ./Frontend/frontend
+      dockerfile: DockerFile
+    volumes:
+      - shared-volume:/data/react
+    ports:
+      - "3000:3000"
+  flask-app:
+    build:
+      context: ./Backend
+      dockerfile: DockerFile_flask
+    volumes:
+      - shared-volume:/data/flask
+    ports:
+      - "5000:5000"                           
+volumes:
+  shared-volume:
