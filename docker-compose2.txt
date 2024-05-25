@@ -1,0 +1,72 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-data:/data/postgres
+
+  airflow-init:
+    image: apache/airflow:2.5.0
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW_WWW_USER_USERNAME: airflow  # Default admin username
+      AIRFLOW_WWW_USER_PASSWORD: airflow  # Default admin password
+    command: db init
+
+  airflow-webserver:
+    image: apache/airflow:2.5.0
+    depends_on:
+      - postgres
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - airflow-data:/data/airflow
+    command: webserver
+    ports:
+      - "8080:8080"
+
+  airflow-scheduler:
+    image: apache/airflow:2.5.0
+    depends_on:
+      - postgres
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+    volumes:
+      - airflow-data:/data/airflow
+    command: scheduler
+
+
+  react-app:
+    build:
+      context: ./Frontend/frontend
+      dockerfile: DockerFile
+    volumes:
+      - react-data:/data/react
+    ports:
+      - "3000:3000"
+
+  flask-app:
+    build:
+      context: ./Backend
+      dockerfile: DockerFile_flask
+    volumes:
+      - flask-data:/data/flask
+    ports:
+      - "5000:5000"
+
+volumes:
+  postgres-data:
+  airflow-data:
+  react-data:
+  flask-data:
